@@ -80,6 +80,8 @@ a{color:var(--pine)}
 .themes{display:flex;flex-wrap:wrap;gap:8px}
 .chip{border:1.5px solid var(--rule);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:14px}
 .chip[aria-pressed="true"]{border-color:var(--pine);background:var(--pine-wash);font-weight:700}
+.topic{width:100%;min-width:0;font:inherit;font-size:15px;color:var(--ink);background:var(--paper);border:1.5px solid var(--rule);border-radius:12px;padding:9px 12px}
+.topic:focus-visible{outline:2px solid var(--pine);outline-offset:1px}
 .focus-line{margin:0;font-size:13.5px;color:var(--ink-soft)}
 .focus-line .en{color:var(--ink)}
 .conn{display:grid;gap:8px;background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:14px 16px}
@@ -242,6 +244,8 @@ a{color:var(--pine)}
         <span class="label">練習するテーマ</span>
         <div class="themes" id="themes"></div>
         <p class="focus-line" id="focusLine"></p>
+        <label class="label" for="topicInput">話したい話題（空欄ならおまかせ）</label>
+        <input class="topic" id="topicInput" type="text" maxlength="60" autocomplete="off" placeholder="例：週末の旅行、職場のランチ、好きな映画">
       </div>
       <div class="conn">
         <span class="label">AIの接続先</span>
@@ -644,6 +648,7 @@ function initStart() {
     box.append(b);
   });
   renderFocusLine();
+  $('#topicInput').value = LS.get('fork-talk.topic');
   $('#startBtn').onclick = () => startConversation(false);
   $('#demoBtn').onclick = () => startConversation(true);
   $('#againBtn').onclick = () => startConversation(!S.live);
@@ -720,6 +725,8 @@ async function startConversation(forceDemo) {
   S.locked = false;
   S.model = geminiSettings().model;
   S.modelNote = '';
+  S.topic = $('#topicInput').value.trim().slice(0, 60);
+  LS.set('fork-talk.topic', S.topic);
   S.errBox = null;
   $('#log').replaceChildren();
   clearTray();
@@ -733,11 +740,15 @@ async function startConversation(forceDemo) {
 function transcriptText() {
   return S.turns.filter((t) => t.reply.text).map((t) => `Partner: ${t.ai}\nLearner: ${t.reply.text}`).join('\n');
 }
+function topicLine() {
+  if (!S.topic) return '';
+  return `\n\nThe learner chose this conversation topic (it may be written in Japanese): ${JSON.stringify(S.topic)}. Talk about this topic and angles close to it for the whole session instead of moving to unrelated everyday topics.`;
+}
 function buildPromptA() {
   const n = S.turns.length;
   const so = n ? transcriptText() : '(nothing yet: open with a short friendly greeting and an easy first line)';
   const last = n === TURN_LIMIT - 1 ? '\nThis is the last exchange of the session: keep it light and easy to answer.' : '';
-  return TURN_A_RULES.split('{FOCUS}').join(theme().focus) + `\n\nConversation so far:\n${so}${last}\n\nWrite your next turn now.`;
+  return TURN_A_RULES.split('{FOCUS}').join(theme().focus) + topicLine() + `\n\nConversation so far:\n${so}${last}\n\nWrite your next turn now.`;
 }
 function buildPromptB(t, i) {
   const so = transcriptText() || '(this is the first exchange)';
@@ -745,7 +756,7 @@ function buildPromptB(t, i) {
   const tail = done >= TURN_LIMIT - 1
     ? '\nThis is the last exchange of the session: set "next" to null.'
     : done === TURN_LIMIT - 2 ? '\nThe exchange after this one is the last: keep "next" light and easy to answer.' : '';
-  return TURN_B_RULES.split('{FOCUS}').join(theme().focus) + `\n\nConversation so far:\n${so}\nPartner: ${t.ai}\nLearner's intent: ${t.intents[i].ja}${tail}\n\nWrite the learner's reply now.`;
+  return TURN_B_RULES.split('{FOCUS}').join(theme().focus) + topicLine() + `\n\nConversation so far:\n${so}\nPartner: ${t.ai}\nLearner's intent: ${t.intents[i].ja}${tail}\n\nWrite the learner's reply now.`;
 }
 function extractAi(text) {
   const m = /"ai"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
