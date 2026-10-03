@@ -1,0 +1,1308 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>分かれ道トーク</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* Layout: one-screen chat. Header, a scrolling conversation, and a tray docked at the bottom for intents and bubbles. */
+:root{
+  --ground:#f1f6f3;
+  --paper:#ffffff;
+  --ink:#14302a;
+  --ink-soft:#4c6560;
+  --ink-faint:#738a84;
+  --rule:#d5e2dc;
+  --pine:#2f6b5e;
+  --on-pine:#f4fbf8;
+  --pine-wash:#dbebe4;
+  --foam:#e3f1eb;
+  --foam-hi:#ffffff;
+  --foam-rim:#a5cdbf;
+  --miss:#b2452f;
+  --miss-wash:#f8e4dd;
+  --tip:#2e5c82;
+  --tip-wash:#e1ebf5;
+  --shade:rgba(20,48,42,.3);
+  --face-ja:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --face-en:"Lexend","Segoe UI","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0e1916;--paper:#15231f;--ink:#e2eee9;--ink-soft:#a2b8b1;--ink-faint:#71897f;--rule:#253a33;
+    --pine:#80c4af;--on-pine:#0d1a16;--pine-wash:#1d3831;--foam:#1a302a;--foam-hi:#2e4d44;--foam-rim:#407061;
+    --miss:#f0917b;--miss-wash:#3a211b;--tip:#94bfe4;--tip-wash:#192b3a;--shade:rgba(0,0,0,.55);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0e1916;--paper:#15231f;--ink:#e2eee9;--ink-soft:#a2b8b1;--ink-faint:#71897f;--rule:#253a33;
+  --pine:#80c4af;--on-pine:#0d1a16;--pine-wash:#1d3831;--foam:#1a302a;--foam-hi:#2e4d44;--foam-rim:#407061;
+  --miss:#f0917b;--miss-wash:#3a211b;--tip:#94bfe4;--tip-wash:#192b3a;--shade:rgba(0,0,0,.55);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{height:100%}
+body{height:100%;margin:0;background:var(--ground);color:var(--ink);font-family:var(--face-ja);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+.en{font-family:var(--face-en)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--pine);outline-offset:3px}
+a{color:var(--pine)}
+
+.app{height:100%;max-width:680px;margin:0 auto;padding-inline:16px;display:flex;flex-direction:column}
+.top{flex:none;display:flex;align-items:center;gap:12px;padding-block:12px;border-bottom:1px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;letter-spacing:.02em}
+.brand svg{width:22px;height:22px;color:var(--pine);flex:none}
+.brand small{font-family:var(--face-en);font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+.progress{margin-left:auto;display:flex;align-items:center;gap:8px;font-family:var(--face-en);font-size:13px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:4px}
+.dots i{width:7px;height:7px;border-radius:50%;background:var(--rule)}
+.dots i.done{background:var(--pine)}
+.dots i.now{background:var(--pine);opacity:.4}
+.ghost{background:none;border:1px solid var(--rule);border-radius:999px;padding:5px 14px;font-size:13px;color:var(--ink-soft)}
+.ghost:hover{border-color:var(--pine);color:var(--ink)}
+.link{background:none;border:0;padding:0;font-size:13px;color:var(--pine);text-decoration:underline;text-underline-offset:3px}
+.stage{flex:1;min-height:0;overflow-y:auto;padding-block:18px}
+
+.start{display:grid;gap:22px}
+.intro{display:grid;gap:10px}
+.start h1{margin:0;font-size:clamp(23px,5.6vw,31px);line-height:1.35;text-wrap:balance}
+.lead{margin:0;color:var(--ink-soft);max-width:36em}
+.label{font-size:12px;letter-spacing:.08em;color:var(--ink-faint)}
+.preview{background:var(--paper);border:1px solid var(--rule);border-radius:20px;padding:16px 16px 20px;display:grid;gap:12px}
+.preview .msg.ai{background:var(--ground)}
+.preview .intents{display:flex;flex-wrap:wrap;gap:8px}
+.pickers{display:grid;gap:10px}
+.themes{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--rule);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:14px}
+.chip[aria-pressed="true"]{border-color:var(--pine);background:var(--pine-wash);font-weight:700}
+.focus-line{margin:0;font-size:13.5px;color:var(--ink-soft)}
+.focus-line .en{color:var(--ink)}
+.conn{display:grid;gap:8px;background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:14px 16px}
+.conn p{margin:0}
+.gem{display:grid;gap:8px}
+.gem label{font-size:12.5px;color:var(--ink-soft)}
+.gem input,.gem select{width:100%;min-width:0;font:inherit;font-family:var(--face-en);font-size:14px;color:var(--ink);background:var(--ground);border:1.5px solid var(--rule);border-radius:10px;padding:8px 10px}
+.gem input:focus-visible,.gem select:focus-visible{outline:2px solid var(--pine);outline-offset:1px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.gem-status{font-size:12.5px;color:var(--ink-soft)}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.primary{background:var(--pine);color:var(--on-pine);border:0;border-radius:999px;padding:12px 28px;font-weight:700;font-size:16px;box-shadow:0 10px 24px -14px var(--shade)}
+.primary:hover{filter:brightness(1.06)}
+.fine{margin:0;font-size:12.5px;color:var(--ink-faint);max-width:40em}
+
+.log{display:flex;flex-direction:column;gap:14px}
+.msg{position:relative;max-width:86%;min-width:0;border-radius:18px;padding:10px 14px;overflow-wrap:anywhere;animation:rise .32s ease-out both}
+.msg p{margin:0}
+.msg.ai{align-self:flex-start;background:var(--paper);border:1px solid var(--rule);border-bottom-left-radius:6px}
+.msg.ai .en{font-size:16.5px;line-height:1.5}
+.msg.me{align-self:flex-end;background:var(--pine);color:var(--on-pine);border-bottom-right-radius:6px}
+.msg.me .en{font-size:16px;line-height:1.5}
+.msg .ja{display:none;margin-top:6px;font-size:14px;line-height:1.55}
+.msg.ai .ja{color:var(--ink-soft)}
+.msg.me .ja{opacity:.85}
+.msg.open .ja{display:block}
+.msg.has-ja{cursor:pointer}
+.msg.has-ja::after{content:"訳";position:absolute;top:-8px;width:19px;height:19px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;line-height:1;background:var(--paper);color:var(--pine);border:1px solid var(--rule)}
+.msg.ai.has-ja::after{right:-8px}
+.msg.me.has-ja::after{left:-8px}
+.msg.has-ja:focus-visible{outline:2px solid var(--pine);outline-offset:3px}
+@media (hover:hover){.msg.has-ja:hover .ja{display:block}}
+.msg.sys{align-self:stretch;max-width:none;background:var(--miss-wash);border:1px solid var(--miss);font-size:14px;display:grid;gap:8px}
+.msg.sys.info{background:var(--tip-wash);border-color:var(--tip)}
+.sys-actions{display:flex;flex-wrap:wrap;gap:8px}
+.err-detail{margin:0;font-family:var(--face-en);font-size:11.5px;line-height:1.5;color:var(--ink-soft);overflow-wrap:anywhere}
+.typing{display:flex;gap:5px;align-items:center;min-height:44px}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);animation:blink 1.1s infinite}
+.typing span:nth-child(2){animation-delay:.18s}
+.typing span:nth-child(3){animation-delay:.36s}
+
+.tray{flex:none;border-top:1px solid var(--rule);padding-block:12px 14px;display:grid;gap:10px}
+.intent-bar{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:12.5px;color:var(--ink-soft)}
+.intent-bar b{font-size:14px;color:var(--ink)}
+.note{border-radius:12px;padding:8px 12px;font-size:13.5px;line-height:1.55;animation:rise .25s ease-out both}
+.note.miss{background:var(--miss-wash);border:1px solid var(--miss)}
+.note.tip{background:var(--tip-wash);border:1px solid var(--tip)}
+.note .kind{font-size:12px;font-weight:700;margin-right:8px}
+.note.miss .kind{color:var(--miss)}
+.note.tip .kind{color:var(--tip)}
+.note b{font-family:var(--face-en);font-weight:600;margin-right:8px}
+.line{margin:0;font-family:var(--face-en);font-size:18px;line-height:1.5;min-height:1.5em;overflow-wrap:anywhere}
+.line .ph{font-family:var(--face-ja);font-size:14px;color:var(--ink-faint)}
+.line .ck{animation:land .45s ease-out both;border-radius:4px}
+.line .ck.old{animation:none}
+.think{display:inline-flex;gap:4px;margin-left:8px;vertical-align:middle}
+.think i{width:5px;height:5px;border-radius:50%;background:var(--ink-faint);animation:blink 1.1s infinite}
+.think i:nth-child(2){animation-delay:.18s}
+.think i:nth-child(3){animation-delay:.36s}
+.caret{display:inline-block;width:2px;height:1.05em;margin-left:3px;vertical-align:-.15em;background:var(--pine);animation:caret 1s steps(1) infinite}
+.cue{justify-self:center;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);animation:rise .25s ease-out both}
+.cue b{font-size:17px;color:var(--ink);background:var(--pine-wash);border-radius:999px;padding:2px 14px}
+.bubbles{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 14px;min-height:80px;padding-block:4px}
+.bubble{display:inline-flex;align-items:center;min-height:48px;padding:12px 20px;border-radius:999px;border:1.5px solid var(--foam-rim);
+  background:radial-gradient(130% 160% at 28% 18%,var(--foam-hi) 0%,var(--foam) 42%,var(--foam) 100%);
+  color:var(--ink);font-family:var(--face-en);font-size:17px;font-weight:500;line-height:1.2;
+  box-shadow:0 10px 22px -14px var(--shade),inset 0 -3px 8px -6px var(--foam-rim);
+  animation:pop .5s cubic-bezier(.2,.9,.3,1.35) both,bob 3.4s ease-in-out infinite;transition:border-color .15s}
+.bubble:hover{border-color:var(--pine)}
+.bubble:nth-child(2){margin-top:14px}
+.bubble:nth-child(3){margin-top:-6px}
+.bubble.miss{border-color:var(--miss);background:var(--miss-wash);color:var(--miss);text-decoration:line-through;text-decoration-thickness:1.5px}
+.bubble.shake{animation:shake .4s ease-in-out}
+.bubble.taken{animation:taken .35s ease-in forwards;pointer-events:none}
+.bubble.gone{animation:fade .25s ease-in forwards;pointer-events:none}
+.intent{min-height:44px;padding:9px 16px;border-radius:14px;border:1.5px solid var(--rule);background:var(--paper);color:var(--ink);font-family:var(--face-ja);font-size:15px;font-weight:700;line-height:1.35;text-align:left;box-shadow:0 8px 18px -14px var(--shade);animation:pop .45s cubic-bezier(.2,.9,.3,1.35) both}
+.intent:hover{border-color:var(--pine)}
+.intent.picked{border-color:var(--pine);background:var(--pine-wash)}
+
+.review{display:grid;gap:16px}
+.review h2{margin:0;font-size:24px}
+.review h3{margin:8px 0 0;font-size:14px;color:var(--ink-soft);letter-spacing:.06em}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.stat{background:var(--paper);border:1px solid var(--rule);border-radius:14px;padding:10px 12px;display:grid;gap:2px}
+.stat b{font-family:var(--face-en);font-size:26px;font-weight:600;line-height:1.15;color:var(--pine);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--ink-soft)}
+.decs{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.dec{background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:12px 14px;display:grid;gap:10px;min-width:0}
+.dec-head{display:grid;gap:4px;min-width:0}
+.dec-ai{margin:0;font-size:13.5px;color:var(--ink-faint)}
+.cue-tag{justify-self:start;font-size:12.5px;background:var(--pine-wash);border-radius:999px;padding:1px 10px}
+.dec-line{margin:2px 0 0;font-size:16px;font-weight:500;line-height:1.5;overflow-wrap:anywhere}
+.dec-ja{margin:0;font-size:13.5px;color:var(--ink-soft)}
+.point{display:grid;gap:6px;padding-top:10px;border-top:1px dashed var(--rule);min-width:0}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:1.3em minmax(0,1fr);column-gap:6px;align-items:baseline}
+.opt .mk{font-weight:700;text-align:center}
+.opt.ok .mk{color:var(--pine)}
+.opt.bad .mk{color:var(--miss)}
+.opt-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;min-width:0}
+.opt-t{font-weight:500}
+.opt.bad .opt-t{text-decoration:line-through;text-decoration-color:var(--miss)}
+.opt-tag{font-size:12px;color:var(--ink-soft)}
+.opt.chosen .opt-tag{color:var(--pine);font-weight:700}
+.opt.tried .opt-tag{color:var(--miss);font-weight:700}
+.opt-use{font-size:11.5px;border:1px solid var(--rule);border-radius:999px;padding:0 8px;color:var(--ink-soft)}
+.opt-note{grid-column:2;margin:2px 0 0;font-size:13.5px;color:var(--ink-soft)}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:16px;padding:14px;display:grid;gap:10px;justify-items:start}
+.panel h4{margin:6px 0 0;font-size:14px}
+.panel ul{list-style:none;margin:0;padding:0;display:grid;gap:12px;justify-self:stretch}
+.muted{margin:0;color:var(--ink-faint);font-size:13.5px}
+.summary{margin:0}
+.rw-yours{margin:0;font-size:14px;color:var(--ink-faint)}
+.rw-better{margin:0;font-size:16px;font-weight:500}
+.rw-why{margin:0;font-size:13.5px;color:var(--ink-soft)}
+.fixes li{display:grid;gap:2px;font-size:14px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-bottom:6px}
+
+@keyframes pop{0%{transform:scale(.3);opacity:0}65%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -4px}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes taken{to{transform:scale(1.12);opacity:0}}
+@keyframes fade{to{transform:scale(.85);opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes land{from{opacity:0;background:var(--pine-wash)}40%{opacity:1;background:var(--pine-wash)}to{opacity:1;background:transparent}}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes caret{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21v-6.6M12 14.4 6.6 6.4M12 14.4l5.4-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="6.2" cy="5.2" r="2.3" fill="currentColor"/><circle cx="17.8" cy="5.2" r="2.3" fill="currentColor"/></svg>
+      <span>分かれ道</span><small>talk</small>
+    </div>
+    <div class="progress" id="progress" hidden><span class="dots" id="dots"></span><span id="count">1 / 6</span></div>
+    <button class="ghost" id="endBtn" type="button" hidden>終える</button>
+  </header>
+
+  <div class="stage" id="stage">
+    <section class="start" id="startView">
+      <div class="intro">
+        <h1>言いたいことを選んで、英語の泡で答える</h1>
+        <p class="lead">AIの話しかけに、まず日本語で「どう返したいか」を選びます。少し英語を考えてから、浮かんでくる英語のかたまりをタップして文を組み立てます。</p>
+      </div>
+      <div class="preview" aria-hidden="true">
+        <span class="label">たとえば</span>
+        <div class="msg ai"><p class="en">Do you like bananas?</p></div>
+        <div class="intents"><span class="intent picked">好きな理由を言う</span><span class="intent">逆に質問する</span><span class="intent">話題を変える</span></div>
+        <p class="line en">I love them<span class="caret"></span></p>
+        <div class="cue"><span>次に言いたいこと</span><b>なぜなら</b></div>
+        <div class="bubbles"><span class="bubble">because</span><span class="bubble">because of</span><span class="bubble">since</span></div>
+      </div>
+      <div class="pickers">
+        <span class="label">練習するテーマ</span>
+        <div class="themes" id="themes"></div>
+        <p class="focus-line" id="focusLine"></p>
+      </div>
+      <div class="conn">
+        <span class="label">AIの接続先</span>
+        <div id="connWait"><p class="muted">確認しています…</p></div>
+        <div id="connClaude" hidden>
+          <p><b>Claude</b>：あなたのClaudeの利用枠を使います。</p>
+          <p class="fine">Geminiの無料枠で使いたいときは、PC用のファイル版を開いてください。claude.aiの中からはGeminiにつながりません。</p>
+        </div>
+        <div id="connNone" hidden>
+          <p>このページではAIを呼び出せません。AIなしのデモ会話で操作を試せます。</p>
+        </div>
+        <div class="gem" id="connGemini" hidden>
+          <p><b>Gemini</b>（Googleの無料枠）</p>
+          <label for="gemKey">APIキー</label>
+          <input id="gemKey" type="password" autocomplete="off" spellcheck="false" placeholder="Google AI Studioで作ったキーを貼り付け">
+          <label for="gemModel">モデル</label>
+          <select id="gemModel">
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite（軽い・回数多め・おすすめ）</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite（軽い・新しめ）</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash（標準）</option>
+            <option value="gemini-3.5-flash">gemini-3.5-flash（標準・新しめ）</option>
+            <option value="gemini-3.8-flash">gemini-3.8-flash（高性能・回数少なめ）</option>
+          </select>
+          <div class="row">
+            <button class="ghost" id="gemSave" type="button">保存</button>
+            <button class="ghost" id="gemClear" type="button">キーを消す</button>
+            <span class="gem-status" id="gemStatus" aria-live="polite"></span>
+          </div>
+          <p class="fine">キーは <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> で無料で作れます。キーはこのブラウザの中にだけ保存され、Geminiへの問い合わせにだけ使います。無料枠では、送った会話の文がGoogleのサービス改善に使われることがあります。</p>
+        </div>
+      </div>
+      <div class="cta">
+        <button class="primary" id="startBtn" type="button">会話をはじめる</button>
+        <button class="ghost" id="demoBtn" type="button">AIなしのデモで試す</button>
+      </div>
+      <p class="fine" id="callNote">1回の会話は6往復で、AIの呼び出しは13回前後です。</p>
+    </section>
+
+    <section id="chatView" hidden>
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+
+    <section class="review" id="reviewView" hidden>
+      <h2>ふりかえり</h2>
+      <div class="stats">
+        <div class="stat"><b id="stDec">0</b><span>分かれ道</span></div>
+        <div class="stat"><b id="stFirst">0</b><span>一発で正解</span></div>
+        <div class="stat"><b id="stCalls">0</b><span>AIの呼び出し</span></div>
+      </div>
+      <h3>やりとりごとの分かれ道</h3>
+      <ol class="decs" id="decs"></ol>
+      <h3>AIの振り返り</h3>
+      <div class="panel" id="aiReview"></div>
+      <div class="actions">
+        <button class="primary" id="againBtn" type="button">同じテーマでもう一度</button>
+        <button class="ghost" id="homeBtn" type="button">テーマを変える</button>
+      </div>
+    </section>
+  </div>
+
+  <footer class="tray" id="tray" hidden>
+    <div class="intent-bar" id="intentBar" hidden><span>言いたいこと</span><b id="intentNow"></b><button class="link" id="reIntent" type="button">選び直す</button></div>
+    <div class="note" id="note" hidden></div>
+    <p class="line" id="line"></p>
+    <div class="cue" id="cue" hidden></div>
+    <div class="bubbles" id="bubbles"></div>
+  </footer>
+</div>
+
+<script>
+(() => {
+const THEMES = [
+  { key: 'auto', ja: 'おまかせ', show: 'いろいろな分かれ道をまんべんなく', focus: 'a natural mix: giving reasons, contrast, time expressions, experiences, comparisons and questions' },
+  { key: 'reason', ja: '理由を言う', show: 'because / because of / since / so', focus: "giving reasons: because / because of / since / so / that's why / due to" },
+  { key: 'contrast', ja: '逆接・譲歩', show: 'although / even though / but / despite', focus: 'contrast and concession: but / although / even though / though / however / despite / in spite of' },
+  { key: 'compare', ja: '比較・代わりに', show: 'as ... as / than / instead of / rather than', focus: 'comparison and alternatives: as ... as / -er than / more ... than / the most / instead of / rather than / prefer A to B / would rather' },
+  { key: 'time', ja: '時の表現', show: 'since / for / until / by / during', focus: 'time expressions: since / for / until / by / during / while / ago / before / after' },
+  { key: 'exp', ja: '経験を話す', show: 'have been / went / have ever / used to', focus: 'talking about experiences: present perfect vs past simple (have been / have ever / have never / went / used to)' },
+  { key: 'amount', ja: '数と量', show: 'a few / few / a little / little', focus: 'quantity words and articles: a few / few / a little / little / many / much / a lot of / a / the' },
+  { key: 'ask', ja: '質問する', show: 'Do you…? / Have you ever…? / What… / How long…', focus: 'asking questions: yes/no questions (Do / Does / Did / Are / Have you ever) and wh-questions (What / Where / When / Who / How long / How often), with correct auxiliaries and word order. Make your own lines mostly short statements about yourself (your weekend, a hobby, a trip) so the learner\'s natural move is to ask you about them; most intents should be questions' },
+];
+const USE_LABEL = { common: 'よく使う', formal: 'やや硬い', casual: 'くだけた', rare: 'あまり使わない' };
+const TURN_LIMIT = 6;
+const MIN_THINK_MS = 1500;
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+const KEY_K = 'fork-talk.gemini.key';
+const MODEL_K = 'fork-talk.gemini.model';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
+const GEMINI_FALLBACKS = ['gemini-2.5-flash-lite', 'gemini-3.5-flash-lite'];
+const TRANSIENT = new Set(['upstream_error', 'network', 'timeout']);
+const PERMANENT = new Set(['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed', 'no_ai']);
+const SETTINGS_CODES = new Set(['bad_key', 'bad_model', 'gemini_quota_day']);
+const PUNCT_START = /^[,.!?;:)'’]/;
+
+const PARTNER_RULES = `"ai": 1-2 short sentences of natural spoken English, as a friendly and curious partner. React briefly to what the learner just said, then keep the conversation going. Stay on everyday topics (food, weekends, work, travel, hobbies, plans) and move to a new topic every two or three turns.
+"ai_ja": a natural Japanese translation of "ai".
+"intents": 4-5 different things the learner might want to say back, in short natural Japanese from the learner's point of view (at most 18 characters each). The kind of variety wanted: "好きな理由を言う", "比べて答える", "話題を変える", "つまらない質問だと言う", "面白い質問だと返す", "逆に質問する".
+- Make them clearly different moves: answering with a reason, comparing, disagreeing, joking, changing the topic, asking back.
+- Always include at least one intent that asks you a question back (more when today's focus is about asking questions).
+- At least two intents should naturally need today's focus: {FOCUS}.
+- Never put English in the intents.`;
+
+const TURN_A_RULES = `You are the conversation partner in a tap-to-talk English practice app for a Japanese adult learner (around CEFR A2-B1). The learner never types. After you speak, the learner first picks WHAT they want to say from Japanese "intents", thinks about the English, and then builds it by tapping English chunks.
+
+Write your NEXT turn as ONE JSON object, keys in this order:
+{"ai": string, "ai_ja": string, "intents": [{"ja": string}, ...]}
+
+${PARTNER_RULES}
+
+Reply with ONLY the JSON object.`;
+
+const TURN_B_RULES = `You are the engine of a tap-to-talk English practice app for a Japanese adult learner (around CEFR A2-B1). The learner has chosen what they want to say (a Japanese intent). Now they build it in English by tapping one chunk per step.
+
+Write the learner's reply as ONE JSON object:
+{"ja": string, "steps": [{"cue": string, "options": [{"t": string, "ok": boolean, "use": "common"|"formal"|"casual"|"rare", "note": string}, ...]}, ...], "next": {"ai": string, "ai_ja": string, "intents": [{"ja": string}, ...]}}
+
+"ja": natural Japanese for the finished reply.
+"steps": the reply from start to end, cut into small chunks.
+"next": the partner's following turn, reacting to this finished reply (so the app needs no extra call). Rules for "next":
+${PARTNER_RULES}
+
+Rules:
+1. The reply does what the intent says, fits the conversation, and is natural spoken English: 1-2 sentences, 6-16 words. Today's focus: {FOCUS}. Use the focus structure whenever the intent allows it.
+2. 4-8 steps. Each chunk is 1-3 words and carries its own punctuation. Cut at the places where learners hesitate: connectors (because, so, but, although, instead of), prepositions, tense and auxiliaries, articles, comparison forms, word order, question forms.
+3. EVERY step offers 2-3 options. Wrong options ("ok": false) are mistakes Japanese learners really make, each with a Japanese "note" saying why it is wrong here and when it would be right. Correct alternatives are welcome ("ok": true): give each a "use" label and a Japanese "note" on the nuance difference.
+4. Each step has at least one ok option, and every ok option in a step must fit the same following steps (the sentence continues the same way whichever ok option is tapped).
+5. "cue": a very short Japanese hint of the meaning to express next (e.g. "なぜなら", "〜より", "月曜から"), only where the learner could not otherwise know what comes next. Use "" elsewhere. Never write English in a cue.
+6. Notes are Japanese, 50 characters or fewer. Give "use" only to ok options.
+
+Example (focus: giving reasons). Partner: "Do you like bananas?" Intent: 好きな理由を言う
+{"ja":"すごく甘いから大好き。","steps":[
+{"cue":"","options":[{"t":"I love","ok":true},{"t":"I'm loving","ok":false,"note":"love は気持ちを表す動詞なので、ふつう進行形にしない"}]},
+{"cue":"","options":[{"t":"them","ok":true},{"t":"it","ok":false,"note":"bananas（複数）を受けるので them"}]},
+{"cue":"なぜなら","options":[{"t":"because","ok":true,"use":"common","note":"理由をつなぐ一番ふつうの言い方"},{"t":"since","ok":true,"use":"formal","note":"少し硬め。相手も知っていそうな理由に向く"},{"t":"because of","ok":false,"note":"because of の後ろは名詞だけ。文が続くなら because"}]},
+{"cue":"","options":[{"t":"they're","ok":true},{"t":"they","ok":false,"note":"sweet の前には be動詞が必要（they're = they are）"}]},
+{"cue":"","options":[{"t":"really sweet.","ok":true},{"t":"really sweetly.","ok":false,"note":"be動詞の後ろは形容詞の sweet。sweetly は副詞"}]}
+],"next":{"ai":"Same here! What else do you like to eat?","ai_ja":"私も！ほかに何を食べるのが好き？","intents":[{"ja":"好きな食べ物を言う"},{"ja":"苦手な物の話をする"},{"ja":"話題を変える"},{"ja":"逆に質問する"}]}}
+
+Reply with ONLY the JSON object.`;
+
+const REVIEW_RULES = `You are reviewing a tap-to-talk English practice session of a Japanese learner (around CEFR A2-B1). In each exchange the learner picked a Japanese intent, then built the reply by tapping chunks that a fast model generated and marked correct or wrong, with short Japanese notes. Check that work and coach the learner.
+
+Return ONLY this JSON object:
+{"summary": string, "rewrites": [{"yours": string, "better": string, "why": string}], "fixes": [{"item": string, "fix": string}]}
+
+- "summary": 2-3 sentences in Japanese: what the learner practiced and the one point worth remembering.
+- "rewrites": up to 3 learner replies that a native speaker would phrase differently, each with a more natural version and a short Japanese reason. Skip replies that are already natural. Use [] if none.
+- "fixes": every option the fast model marked correct or wrong by mistake, and every note that is inaccurate or misleading, with the correct explanation in Japanese. Use [] if everything was right.
+Keep each Japanese text under 80 characters.`;
+
+const DEMO = [
+  { ai: 'Hi! Nice to meet you. Do you like bananas?', ai_ja: 'こんにちは！はじめまして。バナナは好き？',
+    intents: [
+      { ja: '好きな理由を言う', tree: { ja: 'すごく甘いから大好き。', steps: [
+        { cue: '', options: [{ t: 'I love', ok: true }, { t: "I'm loving", ok: false, note: 'love は気持ちを表す動詞なので、ふつう進行形にしない' }] },
+        { cue: '', options: [{ t: 'them', ok: true }, { t: 'it', ok: false, note: 'bananas（複数）を受けるので them' }] },
+        { cue: 'なぜなら', options: [
+          { t: 'because', ok: true, use: 'common', note: '理由をつなぐ一番ふつうの言い方' },
+          { t: 'since', ok: true, use: 'formal', note: '少し硬め。相手も知っていそうな理由に向く' },
+          { t: 'because of', ok: false, note: 'because of の後ろは名詞だけ。文が続くなら because' }] },
+        { cue: '', options: [{ t: "they're", ok: true }, { t: 'they', ok: false, note: "sweet の前には be動詞が必要（they're = they are）" }] },
+        { cue: '', options: [{ t: 'really sweet.', ok: true }, { t: 'really sweetly.', ok: false, note: 'be動詞の後ろは形容詞の sweet。sweetly は副詞' }] },
+      ] } },
+      { ja: '逆に質問する', tree: { ja: 'どんな果物が好き？', steps: [
+        { cue: '', options: [{ t: 'What kind of', ok: true, note: '「どんな種類の〜」と聞く定番の形' }, { t: 'How kind of', ok: false, note: '「どんな〜」は How ではなく What kind of' }] },
+        { cue: '', options: [{ t: 'fruit', ok: true }, { t: 'a fruit', ok: false, note: 'kind of の後ろの名詞には、ふつう a を付けない' }] },
+        { cue: '', options: [{ t: 'do you', ok: true }, { t: 'are you', ok: false, note: 'like は一般動詞なので、are ではなく do で疑問文をつくる' }] },
+        { cue: '', options: [{ t: 'like?', ok: true }, { t: 'like it?', ok: false, note: 'What が「何を」にあたるので it はいらない' }] },
+      ] } },
+    ] },
+  { ai: 'I like mangoes the most! So, what did you do last weekend?', ai_ja: '私はマンゴーが一番好き！ところで、先週末は何をしたの？',
+    intents: [
+      { ja: 'カフェに行ったと言う', tree: { ja: '家にいる代わりにカフェに行ったよ。', steps: [
+        { cue: '', options: [
+          { t: 'I went', ok: true, note: '先週末という終わった時のことなので過去形' },
+          { t: 'I have gone', ok: false, note: '現在完了は last weekend のような過去の時点と一緒に使えない' },
+          { t: 'I go', ok: false, note: '現在形は習慣の話。先週末のことなので過去形' }] },
+        { cue: '', options: [{ t: 'to a café', ok: true }, { t: 'a café', ok: false, note: 'go の後ろに行き先を続けるときは to が必要' }] },
+        { cue: '家にいる代わりに', options: [
+          { t: 'instead of', ok: true, use: 'common', note: '単純な置き換え。「家にいる代わりに」' },
+          { t: 'rather than', ok: true, use: 'formal', note: '「〜よりむしろ」。そちらを選んだ感じが強まる' },
+          { t: 'instead', ok: false, note: 'instead だけでは後ろに名詞を置けない。instead of + 〜ing' }] },
+        { cue: '', options: [{ t: 'staying home.', ok: true }, { t: 'stayed home.', ok: false, note: '前置詞の後ろは ing 形。過去形は置けない' }] },
+      ] } },
+      { ja: '逆に質問する', tree: { ja: 'あなたは？どこか出かけた？', steps: [
+        { cue: '', options: [
+          { t: 'What about you?', ok: true, use: 'common', note: '「あなたは？」と聞き返す定番' },
+          { t: 'How about you?', ok: true, use: 'common', note: 'What about you? とほぼ同じ意味。どちらもよく使う' },
+          { t: 'What for you?', ok: false, note: 'What for は「何のために」。聞き返しには使わない' }] },
+        { cue: '', options: [
+          { t: 'Did you', ok: true, note: '終わった週末のことなので過去形の Did' },
+          { t: 'Have you', ok: false, note: 'last weekend のような終わった時のことは、現在完了でなく過去形で聞く' },
+          { t: 'Do you', ok: false, note: '先週末のことなので過去形の Did' }] },
+        { cue: '', options: [{ t: 'go', ok: true }, { t: 'went', ok: false, note: 'Did の後ろの動詞は原形の go' }] },
+        { cue: '', options: [{ t: 'anywhere?', ok: true, note: '疑問文の「どこか」はふつう anywhere' }, { t: 'nowhere?', ok: false, note: 'nowhere は「どこにも〜ない」。この疑問文には合わない' }] },
+      ] } },
+    ] },
+];
+
+const $ = (sel) => document.querySelector(sel);
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+const str = (v) => (typeof v === 'string' ? v.trim() : '');
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function joinChunks(chunks) {
+  return chunks.reduce((s, c) => (!s ? c : PUNCT_START.test(c) ? s + c : s + ' ' + c), '');
+}
+const MEM = {};
+const LS = {
+  get(k) { try { const v = localStorage.getItem(k); if (v != null) return v; } catch (_) { /* storage blocked */ } return MEM[k] || ''; },
+  set(k, v) { MEM[k] = v; try { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); return true; } catch (_) { return false; } },
+};
+
+const inClaude = !!(window.claude && typeof window.claude.use === 'function');
+const AI = { kind: 'none', sample: null };
+const aiReady = (async () => {
+  if (inClaude) {
+    try { AI.sample = await window.claude.use('sample'); } catch (_) { AI.sample = null; }
+    AI.kind = AI.sample ? 'claude' : 'none';
+  } else {
+    AI.kind = 'gemini';
+  }
+  return AI.kind;
+})();
+
+const S = { theme: 'auto', live: false, turns: [], cur: null, stepIndex: 0, calls: 0, ctls: new Set(), session: 0, stepToken: 0, locked: false, phase: 'idle', model: '', modelNote: '', errBox: null };
+const limit = () => (S.live ? TURN_LIMIT : DEMO.length);
+const theme = () => THEMES.find((x) => x.key === S.theme) || THEMES[0];
+
+function geminiSettings() { return { key: LS.get(KEY_K), model: LS.get(MODEL_K) || DEFAULT_MODEL }; }
+function setGemStatus(text) { $('#gemStatus').textContent = text != null ? text : (geminiSettings().key ? 'キー保存済み' : 'キー未設定'); }
+
+function newCtl() { const c = new AbortController(); S.ctls.add(c); return c; }
+function abortAll() { S.ctls.forEach((c) => c.abort()); S.ctls.clear(); }
+
+async function callJSON(prompt, { deep = false, onText, onStatus } = {}) {
+  const ctl = newCtl();
+  try {
+    if (AI.kind === 'claude') {
+      S.calls++;
+      $('#stCalls').textContent = S.calls;
+      const opts = { modelTier: deep ? 'default' : 'quick', cache: false, signal: ctl.signal };
+      if (onText) opts.onText = onText;
+      return await AI.sample.json(prompt, opts);
+    }
+    if (AI.kind === 'gemini') return await geminiJSON(prompt, deep, ctl.signal, onStatus);
+    throw { code: 'no_ai' };
+  } finally {
+    S.ctls.delete(ctl);
+  }
+}
+
+const noThinking = new Set();
+function thinkingFor(model) {
+  if (/^gemini-2\.5-flash/.test(model)) return { thinkingBudget: 0 };
+  if (/^gemini-3/.test(model)) return { thinkingLevel: 'low' };
+  return null;
+}
+function abortableWait(ms, signal) {
+  return new Promise((resolve, reject) => {
+    const onAbort = () => { clearTimeout(timer); reject({ code: 'cancelled' }); };
+    const timer = setTimeout(() => { signal.removeEventListener('abort', onAbort); resolve(); }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+async function geminiJSON(prompt, deep, signal, onStatus) {
+  const { key } = geminiSettings();
+  if (!key) throw { code: 'bad_key' };
+  const status = (text) => { if (onStatus) onStatus(text); };
+  const primary = S.model || geminiSettings().model;
+  const models = [primary, ...GEMINI_FALLBACKS.filter((m) => m !== primary)].slice(0, 2);
+  let last = null;
+  for (let mi = 0; mi < models.length; mi++) {
+    const model = models[mi];
+    if (mi > 0) status(`混み合っているので、別のモデル（${model}）で試しています`);
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const out = await geminiOnce(prompt, deep, signal, model, key);
+        if (model !== primary) { S.model = model; S.modelNote = model; }
+        return out;
+      } catch (e) {
+        if (!e || e.code === 'cancelled') throw { code: 'cancelled' };
+        last = e;
+        if (e.code === 'thinking_param') { noThinking.add(model); continue; }
+        if (e.code === 'gemini_wait' && attempt === 0 && e.retryMs > 0 && e.retryMs <= 30000) {
+          status(`無料枠の1分あたりの上限です。${Math.ceil(e.retryMs / 1000)}秒待ってから続けます`);
+          await abortableWait(e.retryMs, signal);
+          continue;
+        }
+        if (TRANSIENT.has(e.code) && attempt === 0 && mi === 0) {
+          if (e.status === 500 && e.thinkingSet) noThinking.add(model);
+          status('混み合っているので、もう一度試しています');
+          await abortableWait(1500, signal);
+          continue;
+        }
+        break;
+      }
+    }
+    if (!(TRANSIENT.has(last.code) || last.code === 'bad_model')) break;
+  }
+  throw last || { code: 'upstream_error' };
+}
+async function geminiOnce(prompt, deep, signal, model, key) {
+  const generationConfig = { responseMimeType: 'application/json' };
+  const tc = deep ? null : thinkingFor(model);
+  if (tc && !noThinking.has(model)) generationConfig.thinkingConfig = tc;
+  const ctl = new AbortController();
+  let timedOut = false;
+  const relay = () => ctl.abort();
+  signal.addEventListener('abort', relay);
+  const timer = setTimeout(() => { timedOut = true; ctl.abort(); }, deep ? 90000 : 45000);
+  S.calls++;
+  $('#stCalls').textContent = S.calls;
+  let res;
+  let data = null;
+  try {
+    res = await fetch(GEMINI_URL + encodeURIComponent(model) + ':generateContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig }),
+      signal: ctl.signal,
+    });
+    data = await res.json().catch(() => null);
+  } catch (_) {
+    if (signal.aborted) throw { code: 'cancelled' };
+    throw { code: timedOut ? 'timeout' : 'network', model };
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener('abort', relay);
+  }
+  if (!res.ok) {
+    const err = (data && data.error) || {};
+    const base = { status: res.status, model, message: String(err.message || '') };
+    if (res.status === 400 && generationConfig.thinkingConfig && /think/i.test(base.message)) throw { ...base, code: 'thinking_param' };
+    if (res.status === 400 && /api.?key/i.test(base.message)) throw { ...base, code: 'bad_key' };
+    if (res.status === 401 || res.status === 403) throw { ...base, code: 'bad_key' };
+    if (res.status === 404) throw { ...base, code: 'bad_model' };
+    if (res.status === 429) {
+      const details = Array.isArray(err.details) ? err.details : [];
+      const perDay = details.some((d) => Array.isArray(d.violations) && d.violations.some((v) => /perday/i.test(String(v.quotaId || ''))));
+      const delay = details.map((d) => d && d.retryDelay).find(Boolean);
+      const retryMs = delay ? Math.ceil(parseFloat(delay) * 1000) : 0;
+      throw { ...base, code: perDay ? 'gemini_quota_day' : retryMs ? 'gemini_wait' : 'gemini_quota', retryMs };
+    }
+    if (res.status >= 500) throw { ...base, code: 'upstream_error', thinkingSet: !!generationConfig.thinkingConfig };
+    throw { ...base, code: 'gemini_error' };
+  }
+  const cand = data && Array.isArray(data.candidates) ? data.candidates[0] : null;
+  if (!cand) throw { code: 'refused', model };
+  const text = ((cand.content && cand.content.parts) || []).filter((p) => p && !p.thought && typeof p.text === 'string').map((p) => p.text).join('');
+  if (!text.trim()) throw { code: cand.finishReason === 'SAFETY' ? 'refused' : 'empty_completion', model, message: String(cand.finishReason || '') };
+  const parsed = parseLooseJSON(text);
+  if (parsed === undefined) throw { code: 'invalid_json', model, message: String(cand.finishReason || '') };
+  return parsed;
+}
+function parseLooseJSON(text) {
+  const tries = [text];
+  const fence = /```(?:json)?\s*([\s\S]*?)```/i.exec(text);
+  if (fence) tries.push(fence[1]);
+  const a = text.indexOf('{');
+  const b = text.lastIndexOf('}');
+  if (a !== -1 && b > a) tries.push(text.slice(a, b + 1));
+  for (const t of tries) { try { return JSON.parse(t); } catch (_) { /* next candidate */ } }
+  return undefined;
+}
+
+function showView(v) {
+  $('#startView').hidden = v !== 'start';
+  $('#chatView').hidden = v !== 'chat';
+  $('#reviewView').hidden = v !== 'review';
+  $('#tray').hidden = v !== 'chat';
+  $('#progress').hidden = v !== 'chat';
+  $('#endBtn').hidden = v !== 'chat';
+  $('#stage').scrollTop = 0;
+}
+function scrollStage() {
+  requestAnimationFrame(() => { const s = $('#stage'); s.scrollTop = s.scrollHeight; });
+}
+
+function initStart() {
+  const box = $('#themes');
+  THEMES.forEach((t) => {
+    const b = el('button', 'chip', t.ja);
+    b.type = 'button';
+    b.id = 'theme-' + t.key;
+    b.setAttribute('aria-pressed', String(t.key === S.theme));
+    b.onclick = () => {
+      S.theme = t.key;
+      [...box.children].forEach((c) => c.setAttribute('aria-pressed', String(c === b)));
+      renderFocusLine();
+    };
+    box.append(b);
+  });
+  renderFocusLine();
+  $('#startBtn').onclick = () => startConversation(false);
+  $('#demoBtn').onclick = () => startConversation(true);
+  $('#againBtn').onclick = () => startConversation(!S.live);
+  $('#homeBtn').onclick = () => goHome(false);
+  $('#endBtn').onclick = () => {
+    const any = S.turns.some((t) => t.reply.text || t.decisions.length);
+    if (any) showReview(); else goHome(false);
+  };
+  $('#reIntent').onclick = () => { if (S.phase === 'think' || S.phase === 'build') showIntents(); };
+  $('#gemSave').onclick = () => {
+    const key = $('#gemKey').value.trim();
+    const model = $('#gemModel').value || DEFAULT_MODEL;
+    const stored = LS.set(KEY_K, key) && LS.set(MODEL_K, model);
+    if (!key) setGemStatus('キーが空です');
+    else setGemStatus(stored ? '保存しました' : 'このブラウザでは保存できないため、ページを閉じるまで有効です');
+  };
+  $('#gemClear').onclick = () => { LS.set(KEY_K, ''); $('#gemKey').value = ''; setGemStatus('キーを消しました'); };
+  aiReady.then(renderConn);
+}
+function renderFocusLine() {
+  const t = theme();
+  $('#focusLine').replaceChildren('練習する表現：', el('span', t.key === 'auto' ? null : 'en', t.show));
+}
+function renderConn() {
+  $('#connWait').hidden = true;
+  $('#connClaude').hidden = AI.kind !== 'claude';
+  $('#connNone').hidden = AI.kind !== 'none';
+  $('#connGemini').hidden = AI.kind !== 'gemini';
+  if (AI.kind === 'gemini') {
+    if (!LS.get('fork-talk.gemini.v2')) {
+      if (LS.get(MODEL_K) === 'gemini-3.8-flash') LS.set(MODEL_K, DEFAULT_MODEL);
+      LS.set('fork-talk.gemini.v2', '1');
+    }
+    const s = geminiSettings();
+    $('#gemKey').value = s.key;
+    const sel = $('#gemModel');
+    if (![...sel.options].some((o) => o.value === s.model)) sel.append(new Option(s.model, s.model));
+    sel.value = s.model;
+    setGemStatus();
+  }
+  $('#startBtn').textContent = AI.kind === 'none' ? 'デモ会話をはじめる' : '会話をはじめる';
+  $('#demoBtn').hidden = AI.kind === 'none';
+  $('#callNote').textContent = AI.kind === 'claude'
+    ? '1回の会話は6往復で、AIの呼び出しは7回前後です（最後の振り返りを頼むと+1回）。あなたのClaudeの利用枠を使います。最初に利用を許可するかの確認が出ます。'
+    : AI.kind === 'gemini'
+      ? '1回の会話は6往復で、AIの呼び出しは7回前後です（最後の振り返りを頼むと+1回）。Geminiの無料枠の範囲で動きます。'
+      : '';
+  $('#callNote').hidden = AI.kind === 'none';
+}
+function goHome(toSettings) {
+  abortAll();
+  S.session++;
+  S.phase = 'idle';
+  showView('start');
+  if (toSettings && AI.kind === 'gemini') {
+    $('#gemKey').scrollIntoView({ block: 'center' });
+    $('#gemKey').focus();
+  }
+}
+
+async function startConversation(forceDemo) {
+  abortAll();
+  await aiReady;
+  if (!forceDemo && AI.kind === 'gemini' && !geminiSettings().key) {
+    goHome(true);
+    setGemStatus('APIキーを貼り付けて「保存」を押してください');
+    return;
+  }
+  S.session++;
+  S.live = !forceDemo && AI.kind !== 'none';
+  S.turns = [];
+  S.cur = null;
+  S.calls = 0;
+  S.locked = false;
+  S.model = geminiSettings().model;
+  S.modelNote = '';
+  S.errBox = null;
+  $('#log').replaceChildren();
+  clearTray();
+  hideNote();
+  showView('chat');
+  if (!S.live) addSys(AI.kind === 'none' ? 'このページではAIを呼び出せないため、固定のデモ会話（2往復）で動きます。' : 'AIを使わない固定のデモ会話です（2往復）。', 'info');
+  renderProgress();
+  nextAiTurn();
+}
+
+function transcriptText() {
+  return S.turns.filter((t) => t.reply.text).map((t) => `Partner: ${t.ai}\nLearner: ${t.reply.text}`).join('\n');
+}
+function buildPromptA() {
+  const n = S.turns.length;
+  const so = n ? transcriptText() : '(nothing yet: open with a short friendly greeting and an easy first line)';
+  const last = n === TURN_LIMIT - 1 ? '\nThis is the last exchange of the session: keep it light and easy to answer.' : '';
+  return TURN_A_RULES.split('{FOCUS}').join(theme().focus) + `\n\nConversation so far:\n${so}${last}\n\nWrite your next turn now.`;
+}
+function buildPromptB(t, i) {
+  const so = transcriptText() || '(this is the first exchange)';
+  const done = S.turns.filter((x) => x.reply.text).length;
+  const tail = done >= TURN_LIMIT - 1
+    ? '\nThis is the last exchange of the session: set "next" to null.'
+    : done === TURN_LIMIT - 2 ? '\nThe exchange after this one is the last: keep "next" light and easy to answer.' : '';
+  return TURN_B_RULES.split('{FOCUS}').join(theme().focus) + `\n\nConversation so far:\n${so}\nPartner: ${t.ai}\nLearner's intent: ${t.intents[i].ja}${tail}\n\nWrite the learner's reply now.`;
+}
+function extractAi(text) {
+  const m = /"ai"\s*:\s*"((?:[^"\\]|\\.)*)"/.exec(text);
+  if (!m) return '';
+  try { return JSON.parse(`"${m[1]}"`); } catch (_) { return ''; }
+}
+function makeTurn(ai, aiJa, intents) {
+  return { ai, ai_ja: aiJa, intents: intents.map((ja) => ({ ja })), trees: {}, chosen: null, tree: null, reply: { chunks: [], text: '', ja: '' }, decisions: [] };
+}
+function normalizeTurnA(d) {
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+  const ai = str(d.ai);
+  if (!ai) return null;
+  let intents = (Array.isArray(d.intents) ? d.intents : []).map((x) => str(x && typeof x === 'object' ? x.ja : x)).filter(Boolean);
+  intents = [...new Set(intents)].slice(0, 5);
+  if (intents.length < 2) intents = ['ふつうに答える', '理由をつけて答える', '逆に質問する'];
+  return makeTurn(ai, str(d.ai_ja), intents);
+}
+function normalizeTree(d) {
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+  const steps = [];
+  (Array.isArray(d.steps) ? d.steps : []).forEach((s) => {
+    if (!s || !Array.isArray(s.options)) return;
+    const seen = new Set();
+    const options = s.options.filter((o) => o && str(o.t)).map((o) => ({
+      t: str(o.t),
+      ok: !(o.ok === false || o.ok === 'false'),
+      use: USE_LABEL[o.use] ? o.use : '',
+      note: str(o.note),
+    })).filter((o) => (seen.has(o.t) ? false : seen.add(o.t))).slice(0, 4);
+    if (options.some((o) => o.ok)) steps.push({ cue: str(s.cue), options });
+  });
+  if (!steps.length) return null;
+  return { ja: str(d.ja), steps, next: normalizeTurnA(d.next) };
+}
+
+async function nextAiTurn(prepared) {
+  const sess = S.session;
+  S.phase = 'ai';
+  clearErr();
+  const msg = addTyping();
+  try {
+    let turn;
+    if (prepared) {
+      await wait(500);
+      turn = prepared;
+    } else if (!S.live) {
+      await wait(650);
+      const d = DEMO[S.turns.length];
+      turn = makeTurn(d.ai, d.ai_ja, d.intents.map((x) => x.ja));
+      turn.demo = d;
+    } else {
+      let early = false;
+      const data = await callJSON(buildPromptA(), {
+        onText: ({ text }) => {
+          if (early || sess !== S.session) return;
+          const ai = extractAi(text);
+          if (ai) { early = true; fillAiMsg(msg, ai, ''); }
+        },
+        onStatus: (text) => { if (sess === S.session) setLine(text, true); },
+      });
+      turn = normalizeTurnA(data);
+      if (!turn) throw { code: 'invalid_json' };
+    }
+    if (sess !== S.session) return;
+    noteModelSwitch();
+    fillAiMsg(msg, turn.ai, turn.ai_ja);
+    S.turns.push(turn);
+    S.cur = turn;
+    renderProgress();
+    showIntents();
+  } catch (e) {
+    const code = e && e.code;
+    if (sess !== S.session || code === 'cancelled') return;
+    msg.remove();
+    setLine('');
+    showError(code, () => nextAiTurn(), e);
+  }
+}
+
+function resetReply(t) {
+  t.tree = null;
+  t.reply = { chunks: [], text: '', ja: '' };
+  t.decisions = [];
+}
+
+function showIntents() {
+  const t = S.cur;
+  S.phase = 'intent';
+  const token = ++S.stepToken;
+  t.chosen = null;
+  resetReply(t);
+  hideNote();
+  $('#intentBar').hidden = true;
+  $('#cue').hidden = true;
+  setLine('どう返す？ 言いたいことを選ぼう');
+  const box = $('#bubbles');
+  box.replaceChildren();
+  setTimeout(() => {
+    if (token !== S.stepToken) return;
+    t.intents.forEach((it, i) => {
+      const b = el('button', 'intent', it.ja);
+      b.type = 'button';
+      b.style.animationDelay = `${i * 90}ms`;
+      b.onclick = () => chooseIntent(i);
+      box.append(b);
+    });
+    scrollStage();
+  }, 450);
+}
+
+async function chooseIntent(i) {
+  const t = S.cur;
+  const sess = S.session;
+  const token = ++S.stepToken;
+  S.phase = 'think';
+  t.chosen = i;
+  resetReply(t);
+  hideNote();
+  clearErr();
+  $('#cue').hidden = true;
+  $('#intentNow').textContent = t.intents[i].ja;
+  $('#intentBar').hidden = false;
+  $('#bubbles').replaceChildren();
+  setLine('英語でどう言うか、頭の中で組み立ててみよう', true);
+  const minWait = wait(MIN_THINK_MS);
+  try {
+    let tree = t.trees[i];
+    if (!tree) {
+      if (!S.live) {
+        tree = normalizeTree(t.demo.intents[i].tree);
+      } else {
+        tree = normalizeTree(await callJSON(buildPromptB(t, i), {
+          onStatus: (text) => { if (sess === S.session && token === S.stepToken) setLine(text, true); },
+        }));
+        if (!tree) throw { code: 'invalid_json' };
+      }
+      t.trees[i] = tree;
+    }
+    await minWait;
+    if (sess !== S.session || token !== S.stepToken) return;
+    noteModelSwitch();
+    startBuild(tree);
+  } catch (e) {
+    const code = e && e.code;
+    if (sess !== S.session || token !== S.stepToken || code === 'cancelled') return;
+    showError(code, () => chooseIntent(i), e);
+    showIntents();
+  }
+}
+
+function startBuild(tree) {
+  const t = S.cur;
+  S.phase = 'build';
+  t.tree = tree;
+  S.stepIndex = 0;
+  renderLine();
+  renderStep(true);
+}
+
+function renderStep(first) {
+  const t = S.cur;
+  const step = t.tree.steps[S.stepIndex];
+  if (!step) { finishReply(); return; }
+  const token = ++S.stepToken;
+  const sess = S.session;
+  const box = $('#bubbles');
+  box.replaceChildren();
+  const cue = $('#cue');
+  const decision = step.options.length > 1;
+  if (decision && step.cue) {
+    cue.replaceChildren(el('span', null, '次に言いたいこと'), el('b', null, step.cue));
+    cue.hidden = false;
+  } else {
+    cue.hidden = true;
+  }
+  if (!decision) {
+    setTimeout(() => {
+      if (token !== S.stepToken || sess !== S.session) return;
+      t.reply.chunks.push(step.options[0].t);
+      renderLine();
+      S.stepIndex++;
+      renderStep(false);
+    }, 320);
+    return;
+  }
+  const rec = { cue: step.cue, options: step.options, chosen: null, wrongs: [] };
+  setTimeout(() => {
+    if (token !== S.stepToken) return;
+    shuffle(step.options.slice()).forEach((o, i) => {
+      const b = el('button', 'bubble', o.t);
+      b.type = 'button';
+      b.style.animationDelay = `${i * 110}ms, ${i * 420}ms`;
+      b.onclick = () => pick(o, b, rec);
+      box.append(b);
+    });
+    scrollStage();
+  }, first ? 250 : 600);
+}
+
+function pick(o, btn, rec) {
+  if (S.locked || S.phase !== 'build') return;
+  if (!o.ok) {
+    btn.classList.remove('shake');
+    void btn.offsetWidth;
+    btn.classList.add('shake', 'miss');
+    if (!rec.wrongs.includes(o.t)) rec.wrongs.push(o.t);
+    showNote('miss', 'ちがう', o.t, o.note || 'この場面では使えません。');
+    return;
+  }
+  S.locked = true;
+  const t = S.cur;
+  const sess = S.session;
+  const token = S.stepToken;
+  rec.chosen = o.t;
+  t.decisions.push(rec);
+  t.reply.chunks.push(o.t);
+  if (o.note) showNote('tip', o.use ? USE_LABEL[o.use] : '正解', o.t, o.note);
+  else hideNote();
+  [...$('#bubbles').children].forEach((c) => c.classList.add(c === btn ? 'taken' : 'gone'));
+  renderLine();
+  setTimeout(() => {
+    S.locked = false;
+    if (sess !== S.session || token !== S.stepToken) return;
+    S.stepIndex++;
+    renderStep(false);
+  }, 380);
+}
+
+function finishReply() {
+  const t = S.cur;
+  const sess = S.session;
+  S.phase = 'done';
+  t.reply.text = joinChunks(t.reply.chunks);
+  t.reply.ja = (t.tree && t.tree.ja) || '';
+  addMe(t.reply.text, t.reply.ja);
+  clearTray();
+  renderProgress();
+  const done = S.turns.filter((x) => x.reply.text).length;
+  const over = done >= limit();
+  setTimeout(() => {
+    if (sess !== S.session) return;
+    if (over) showReview();
+    else nextAiTurn(S.live && t.tree && t.tree.next ? t.tree.next : null);
+  }, over ? 900 : 300);
+}
+
+function clearTray() {
+  S.stepToken++;
+  $('#bubbles').replaceChildren();
+  $('#cue').hidden = true;
+  $('#intentBar').hidden = true;
+  setLine('');
+}
+function setLine(text, thinking) {
+  const line = $('#line');
+  line.replaceChildren();
+  if (!text) return;
+  const ph = el('span', 'ph', text);
+  if (thinking) {
+    const dots = el('span', 'think');
+    dots.append(el('i'), el('i'), el('i'));
+    ph.append(dots);
+  }
+  line.append(ph);
+}
+function renderLine() {
+  const line = $('#line');
+  const chunks = S.cur ? S.cur.reply.chunks : [];
+  line.replaceChildren();
+  if (!chunks.length) { setLine('泡をタップして文をつくろう'); return; }
+  chunks.forEach((c, i) => {
+    if (i > 0 && !PUNCT_START.test(c)) line.append(' ');
+    line.append(el('span', i === chunks.length - 1 ? 'ck' : 'ck old', c));
+  });
+  line.append(el('span', 'caret'));
+}
+function showNote(kind, label, word, text) {
+  const n = $('#note');
+  n.className = 'note ' + kind;
+  n.replaceChildren(el('span', 'kind', label), el('b', null, word), document.createTextNode(text));
+  n.hidden = false;
+  n.style.animation = 'none';
+  void n.offsetWidth;
+  n.style.animation = '';
+  scrollStage();
+}
+function hideNote() { $('#note').hidden = true; }
+
+function renderProgress() {
+  const n = limit();
+  const done = S.turns.filter((t) => t.reply.text).length;
+  const dots = $('#dots');
+  dots.replaceChildren();
+  for (let i = 0; i < n; i++) dots.append(el('i', i < done ? 'done' : i === done ? 'now' : null));
+  $('#count').textContent = `${Math.min(done + 1, n)} / ${n}`;
+}
+
+function setTranslatable(m, en, ja) {
+  m.replaceChildren(el('p', 'en', en));
+  m.classList.toggle('has-ja', !!ja);
+  if (!ja) {
+    m.removeAttribute('role');
+    m.removeAttribute('tabindex');
+    m.removeAttribute('aria-expanded');
+    return;
+  }
+  m.append(el('p', 'ja', ja));
+  m.setAttribute('role', 'button');
+  m.tabIndex = 0;
+  m.setAttribute('aria-expanded', String(m.classList.contains('open')));
+  if (m.dataset.bound) return;
+  m.dataset.bound = '1';
+  const toggle = () => {
+    if (!m.classList.contains('has-ja')) return;
+    m.setAttribute('aria-expanded', String(m.classList.toggle('open')));
+  };
+  m.addEventListener('click', toggle);
+  m.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+}
+function addTyping() {
+  const m = el('div', 'msg ai typing');
+  m.setAttribute('aria-label', '相手が返事を考えています');
+  m.append(el('span'), el('span'), el('span'));
+  $('#log').append(m);
+  scrollStage();
+  return m;
+}
+function fillAiMsg(m, en, ja) {
+  m.classList.remove('typing');
+  m.removeAttribute('aria-label');
+  setTranslatable(m, en, ja);
+  scrollStage();
+}
+function addMe(en, ja) {
+  const m = el('div', 'msg me');
+  setTranslatable(m, en, ja);
+  $('#log').append(m);
+  scrollStage();
+}
+function addSys(text, kind) {
+  const box = el('div', 'msg sys' + (kind ? ' ' + kind : ''));
+  box.append(el('p', null, text));
+  $('#log').append(box);
+  scrollStage();
+  return box;
+}
+
+function clearErr() {
+  if (S.errBox) S.errBox.remove();
+  S.errBox = null;
+}
+function noteModelSwitch() {
+  if (!S.modelNote) return;
+  addSys(`混み合っていたため、このあとはモデル「${S.modelNote}」で続けます。`, 'info');
+  S.modelNote = '';
+}
+function errCopy(code, message) {
+  switch (code) {
+    case 'upstream_error': return AI.kind === 'gemini'
+      ? 'Geminiが混み合っているか一時的なエラーで、返事が届きませんでした。少し待ってから「もう一度」を押してください。'
+      : 'Claudeとの通信が一時的に失敗しました。「もう一度」を押してください。';
+    case 'timeout': return 'Geminiの返事が時間内に届きませんでした。「もう一度」を押してください。';
+    case 'gemini_wait':
+    case 'gemini_quota': return 'Geminiの無料枠の、1分あたりの回数に達しました。1分ほど待ってから「もう一度」を押してください。';
+    case 'gemini_quota_day': return '今日のGemini無料枠の回数を使い切りました。日付が変わると回復します。設定で別のモデルを選ぶと続けられることがあります。';
+    case 'not_granted': return 'このページでのClaudeの利用が許可されませんでした。ページを開き直すと、もう一度確認が出ます。';
+    case 'sampling_disabled':
+    case 'not_declared':
+    case 'capability_disabled':
+    case 'capability_removed': return 'このページからClaudeを呼び出せない状態です。';
+    case 'no_ai': return 'AIの接続先がありません。AIなしのデモ会話で試せます。';
+    case 'rate_limited': return 'Claudeの利用枠の上限に達したか、短時間に呼び出しすぎました。少し時間をおいてから「もう一度」を押してください。';
+    case 'bad_key': return 'GeminiのAPIキーが正しくないか、使えない状態です。設定でキーを確かめてください。';
+    case 'bad_model': return 'Geminiのモデルが見つかりません。設定で別のモデルを選んでください。';
+    case 'network': return 'Geminiに接続できませんでした。ネット接続を確かめて「もう一度」を押してください。';
+    case 'gemini_error': return 'Geminiがエラーを返しました' + (message ? '：' + message : '。') ;
+    case 'session_expired': return 'ログインの有効期限が切れました。claude.aiにログインし直してから「もう一度」を押してください。';
+    case 'invalid_json': return 'AIの返答の形が崩れていました。「もう一度」で作り直します。';
+    case 'refused': return 'この流れの会話は続けられないと返されました。テーマを変えて始め直してください。';
+    case 'prompt_too_large': return '会話が長くなりすぎました。「終える」で振り返りに進んでください。';
+    case 'empty_completion': return 'AIから返答がありませんでした。「もう一度」を押してください。';
+    default: return '返事を受け取れませんでした。「もう一度」を押してください。';
+  }
+}
+function showError(code, retry, err) {
+  clearErr();
+  const box = addSys(errCopy(code, err && err.message));
+  S.errBox = box;
+  const detail = [err && err.status, err && err.model, err && err.message && String(err.message).slice(0, 160)].filter(Boolean).join(' / ');
+  if (detail) box.append(el('p', 'err-detail', '詳細：' + detail));
+  const row = el('div', 'sys-actions');
+  const add = (label, fn) => { const b = el('button', 'ghost', label); b.type = 'button'; b.onclick = fn; row.append(b); };
+  if (SETTINGS_CODES.has(code)) add('AIの設定へ', () => goHome(true));
+  else if (PERMANENT.has(code)) add('デモ会話で試す', () => startConversation(true));
+  else if (code === 'refused') add('テーマを変える', () => goHome(false));
+  else if (code !== 'prompt_too_large') add('もう一度', () => { clearErr(); retry(); });
+  if (row.children.length) box.append(row);
+}
+
+function showReview() {
+  abortAll();
+  S.session++;
+  S.phase = 'review';
+  showView('review');
+  $('#againBtn').textContent = S.live ? '同じテーマでもう一度' : 'デモをもう一度';
+  const turns = S.turns.filter((t) => t.reply.text || t.decisions.length);
+  const decs = turns.flatMap((t) => t.decisions.filter((d) => d.chosen));
+  $('#stDec').textContent = decs.length;
+  $('#stFirst').textContent = decs.filter((d) => !d.wrongs.length).length;
+  $('#stCalls').textContent = S.calls;
+  const list = $('#decs');
+  list.replaceChildren();
+  if (!turns.length) list.append(el('li', 'muted', '返事を組み立てる前に会話を終えました。'));
+  turns.forEach((t) => list.append(renderTurnCard(t)));
+  const box = $('#aiReview');
+  box.replaceChildren();
+  if (!S.live) box.append(el('p', 'muted', 'デモ会話ではAIの振り返りは使えません。AIにつながった状態で会話すると、ここに総評と、より自然な言い方が出ます。'));
+  else if (!S.turns.some((t) => t.reply.text)) box.append(el('p', 'muted', '返事を1つも送らずに終えたため、振り返りはありません。'));
+  else {
+    box.append(el('p', 'muted', '会話全体の総評と、より自然な言い方をAIに出してもらえます。'));
+    const b = el('button', 'ghost', 'AIに振り返ってもらう（AIを1回使います）');
+    b.type = 'button';
+    b.onclick = () => runAiReview();
+    box.append(b);
+  }
+}
+
+function isPoint(d) {
+  const chosen = d.options.find((o) => o.t === d.chosen);
+  return d.wrongs.length > 0 || d.options.filter((o) => o.ok).length > 1 || !!(chosen && chosen.note);
+}
+function renderTurnCard(t) {
+  const li = el('li', 'dec');
+  const head = el('div', 'dec-head');
+  head.append(el('p', 'dec-ai en', t.ai));
+  if (t.chosen != null) head.append(el('span', 'cue-tag', '言いたいこと：' + t.intents[t.chosen].ja));
+  head.append(el('p', 'dec-line en', t.reply.text || joinChunks(t.reply.chunks) + ' …'));
+  if (t.reply.ja) head.append(el('p', 'dec-ja', t.reply.ja));
+  li.append(head);
+  const done = t.decisions.filter((d) => d.chosen);
+  const points = done.filter(isPoint);
+  points.forEach((d) => li.append(renderPoint(d)));
+  const quiet = done.length - points.length;
+  if (quiet > 0) li.append(el('p', 'muted', `ほかに${quiet}か所、迷わず正解しました。`));
+  return li;
+}
+function renderPoint(d) {
+  const box = el('div', 'point');
+  if (d.cue) box.append(el('span', 'cue-tag', d.cue));
+  const rank = (o) => (o.t === d.chosen ? 0 : o.ok ? 1 : d.wrongs.includes(o.t) ? 2 : 3);
+  const opts = el('div', 'opts');
+  [...d.options].sort((a, b) => rank(a) - rank(b)).forEach((o) => {
+    const tried = d.wrongs.includes(o.t);
+    const chosen = o.t === d.chosen;
+    const row = el('div', 'opt ' + (o.ok ? 'ok' : 'bad') + (chosen ? ' chosen' : '') + (tried ? ' tried' : ''));
+    row.append(el('span', 'mk', o.ok ? '○' : '×'));
+    const top = el('div', 'opt-top');
+    top.append(el('span', 'opt-t en', o.t), el('span', 'opt-tag', chosen ? 'あなたの選択' : o.ok ? '別の正解' : tried ? '押したミス' : 'まちがい'));
+    if (o.ok && o.use) top.append(el('span', 'opt-use', USE_LABEL[o.use]));
+    row.append(top);
+    if (o.note) row.append(el('p', 'opt-note', o.note));
+    opts.append(row);
+  });
+  box.append(opts);
+  return box;
+}
+
+function buildReviewPrompt() {
+  const session = S.turns.filter((t) => t.reply.text).map((t) => ({
+    partner: t.ai,
+    learner_intent: t.chosen != null ? t.intents[t.chosen].ja : undefined,
+    learner_reply: t.reply.text,
+    steps: t.decisions.filter((d) => d.chosen).map((d) => ({
+      cue: d.cue || undefined,
+      chosen: d.chosen,
+      wrong_taps: d.wrongs,
+      options: d.options.map((o) => ({ t: o.t, ok: o.ok, use: o.use || undefined, note: o.note || undefined })),
+    })),
+  }));
+  return REVIEW_RULES + '\n\nSession (JSON):\n' + JSON.stringify(session);
+}
+
+async function runAiReview() {
+  const box = $('#aiReview');
+  const sess = S.session;
+  const status = el('p', 'muted', 'AIが会話をふりかえっています。10〜60秒ほどかかります。');
+  box.replaceChildren(status);
+  const stop = el('button', 'ghost', '中止');
+  stop.type = 'button';
+  stop.onclick = () => abortAll();
+  box.append(stop);
+  try {
+    const data = await callJSON(buildReviewPrompt(), { deep: true, onStatus: (text) => { if (sess === S.session) status.textContent = text; } });
+    if (sess !== S.session) return;
+    renderAiReview(data);
+  } catch (e) {
+    if (sess !== S.session) return;
+    const code = e && e.code;
+    box.replaceChildren(el('p', 'muted', code === 'cancelled' ? '振り返りを中止しました。' : errCopy(code, e && e.message)));
+    if (!PERMANENT.has(code) && !SETTINGS_CODES.has(code)) {
+      const b = el('button', 'ghost', 'もう一度ふりかえる');
+      b.type = 'button';
+      b.onclick = () => runAiReview();
+      box.append(b);
+    }
+  }
+}
+
+function renderAiReview(d) {
+  const box = $('#aiReview');
+  box.replaceChildren();
+  const summary = str(d && d.summary);
+  const rws = (Array.isArray(d && d.rewrites) ? d.rewrites : []).filter((r) => r && str(r.better)).slice(0, 3);
+  const fixes = (Array.isArray(d && d.fixes) ? d.fixes : []).filter((f) => f && (str(f.item) || str(f.fix)));
+  if (!summary && !rws.length && !Array.isArray(d && d.fixes)) {
+    box.append(el('p', 'muted', '振り返りの内容を受け取れませんでした。'));
+    const b = el('button', 'ghost', 'もう一度ふりかえる');
+    b.type = 'button';
+    b.onclick = () => runAiReview();
+    box.append(b);
+    return;
+  }
+  if (summary) box.append(el('p', 'summary', summary));
+  if (rws.length) {
+    box.append(el('h4', null, 'より自然な言い方'));
+    const ul = el('ul');
+    rws.forEach((r) => {
+      const li = el('li');
+      if (str(r.yours)) li.append(el('p', 'rw-yours en', 'あなた： ' + str(r.yours)));
+      li.append(el('p', 'rw-better en', str(r.better)));
+      if (str(r.why)) li.append(el('p', 'rw-why', str(r.why)));
+      ul.append(li);
+    });
+    box.append(ul);
+  }
+  box.append(el('h4', null, '会話中の解説のチェック'));
+  if (!fixes.length) {
+    box.append(el('p', 'muted', '会話中に出た解説に、訂正はありませんでした。'));
+  } else {
+    const ul = el('ul', 'fixes');
+    fixes.forEach((f) => {
+      const li = el('li');
+      if (str(f.item)) li.append(el('b', 'en', str(f.item)));
+      if (str(f.fix)) li.append(el('span', null, str(f.fix)));
+      ul.append(li);
+    });
+    box.append(ul);
+  }
+}
+
+initStart();
+showView('start');
+})();
+</script>
+
+</body>
+</html>
